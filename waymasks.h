@@ -8,6 +8,28 @@
 #define WM_MIN_FREE_WAY WM_NUM_CORES
 #define WM_MAX_FREE_WAY WM_NUM_WAYS-2 /* We allocate 1 way for all non core masters */
 
+/* Waymasking is part of the dynamic way-allocation system.
+ *
+ * A Way is in one of 3 global logical states (W_n):
+ *  - Free (in use on any master using untrusted code) - F
+ *  - Free-reserved (as Free, but may not be allocated in all circumstances) - FR
+ *  - Allocated (in use for one specific enclave) - A
+ *
+ * A way is in one of 2 states on each master (MW_n):
+ *  - Granted (1 in mask, available to be used) - G
+ *  - Locked (0 in mask, not available to be used) - L
+ *
+ */
+
+
+/* Legal allocations
+ ********************
+ * Way  0    : (FR) All non-core masters, all untrusted execution
+ * Ways 1-C  : (FR/A) Core N MAY always has way N, untrusted or enclave mode.
+ *                    Enclave mode is not required to use Way N.
+ * Ways C-M  : (F/A) Free or allocated to an enclave
+ */
+
 typedef uint64_t waymask_t;
 
 waymask_t enclave_allocated_ways;
