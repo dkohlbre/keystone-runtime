@@ -62,6 +62,7 @@ static inline uintptr_t kernel_va_to_pa(void* ptr)
   return (uintptr_t) ptr - kernel_offset;
 }
 
+size_t load_pa_size;
 uintptr_t load_pa_start;
 static inline uintptr_t __va(uintptr_t pa)
 {
@@ -123,6 +124,5 @@ size_t freemem_size;
 /* shared buffer */
 uintptr_t shared_buffer;
 uintptr_t shared_buffer_size;
-
 
 #endif
