@@ -11,6 +11,7 @@
 #define SBI_CONSOLE_PUTCHAR 1
 #define SBI_CONSOLE_GETCHAR 2
 
+
 #define SBI_SM_CREATE_ENCLAVE    101
 #define SBI_SM_DESTROY_ENCLAVE   102
 #define SBI_SM_ATTEST_ENCLAVE    103
@@ -18,6 +19,8 @@
 #define SBI_SM_STOP_ENCLAVE      106
 #define SBI_SM_RESUME_ENCLAVE    107
 #define SBI_SM_ENCLAVE_GETRANDOM 108
+#define SBI_SM_EXTEND_ENCLAVE   109
+
 #define SBI_SM_EXIT_ENCLAVE     1101
 #define SBI_SM_NOT_IMPLEMENTED  1111
 
@@ -58,9 +61,9 @@ static inline void sbi_stop_enclave(uint64_t request)
   SBI_CALL_1(SBI_SM_STOP_ENCLAVE, request);
 }
 
-static inline void sbi_increase_freemem(uint64_t size)
+static inline void sbi_increase_freemem(uint64_t pages)
 {
-  SBI_CALL_1(SBI_SM_STOP_ENCLAVE, STOP_INCREASE_FREEMEM | (size << 16));
+  SBI_CALL_1(SBI_SM_STOP_ENCLAVE, STOP_INCREASE_FREEMEM | (pages << 16));
 }
 
 static inline void sbi_exit_enclave(uint64_t retval)

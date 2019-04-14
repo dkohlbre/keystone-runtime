@@ -15,6 +15,9 @@ int rt_util_getrandom(void* vaddr, size_t buflen){
 
 void rt_util_misc_fatal(){
   //Better hope we can debug it!
+#ifdef FATAL_DEBUG
+  printf("[runtime] misc badness \r\n");
+#endif
   sbi_exit_enclave(-1);
 }
 

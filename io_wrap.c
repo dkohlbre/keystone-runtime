@@ -5,7 +5,7 @@
 #include "syscall.h"
 #include "string.h"
 #include "edge_syscall.h"
-
+#include "rt_util.h"
 /* Syscalls iozone uses in -i0 mode
 *** Fake these
  *   uname

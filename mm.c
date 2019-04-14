@@ -3,6 +3,7 @@
 #include "mm.h"
 #include "freemem.h"
 #include "vm.h"
+#include "rt_util.h"
 
 /* Page table utilities */
 static pte_t*
@@ -117,12 +118,12 @@ alloc_page(uintptr_t vpn, int flags)
   if (!pte)
     return 0;
 
-	/* if the page has been already allocated, return the page */
+  /* if the page has been already allocated, return the page */
   if(*pte & PTE_V) {
     return __va(*pte << RISCV_PAGE_BITS);
   }
 
-	/* otherwise, allocate one from the freemem */
+  /* otherwise, allocate one from the freemem */
   page = spa_get();
   *pte = pte_create(ppn(__pa(page)), flags | PTE_V);
 
@@ -155,6 +156,7 @@ free_page(uintptr_t vpn){
 size_t
 alloc_pages(uintptr_t vpn, size_t count, int flags)
 {
+  print_strace("allocing %u of %u pgs\n", count, spa_available());
   unsigned int i;
   for (i = 0; i < count; i++) {
     if(!alloc_page(vpn + i, flags))

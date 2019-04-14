@@ -4,6 +4,13 @@
 #include "regs.h"
 #include <stddef.h>
 
+#ifdef INTERNAL_STRACE
+#define print_strace printf
+#else
+#define print_strace(...)
+#endif
+
+
 #define FATAL_DEBUG
 
 int rt_util_getrandom(void* vaddr, size_t buflen);

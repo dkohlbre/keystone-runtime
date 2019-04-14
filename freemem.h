@@ -28,6 +28,9 @@ void spa_init(uintptr_t base, size_t size);
 uintptr_t spa_get(void);
 void spa_put(uintptr_t page);
 unsigned int spa_available();
+unsigned int spa_available_try_extend(unsigned int req);
+
+void spa_validate_list();
 void spa_extend(uintptr_t base, size_t size);
 
 #endif /* __FREEMEM_H__ */

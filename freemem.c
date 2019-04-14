@@ -3,6 +3,7 @@
 #include "vm.h"
 #include "freemem.h"
 #include "sbi.h"
+#include "rt_util.h"
 
 /* This file implements a simple page allocator (SPA)
  * which stores the pages based on a linked list.
@@ -49,29 +50,12 @@ void extend_physical_memory(uintptr_t pa, size_t size)
   spa_extend(__va(pa), size);
 }
 
-/* FIXME: just simulate allocating 1 page */
-#define DEFAULT_FREEMEM_REQUEST_SIZE  4096
-
 /* get a free page from the simple page allocator */
 uintptr_t
 spa_get(void)
 {
   uintptr_t free_page;
 
-  if (LIST_EMPTY(spa_free_pages)) {
-    //printf("eyrie simple page allocator runs out of free pages %s","\n");
-
-    // FIXME: this code assumes that it NEVER fails
-    //printf("requesting one more page... \n");
-    sbi_increase_freemem(DEFAULT_FREEMEM_REQUEST_SIZE);
-    extend_physical_memory(load_pa_start + load_pa_size, DEFAULT_FREEMEM_REQUEST_SIZE);
-    // printf("extended the freemem\n");
-    // FIXME return 0 if it fails,
-    //return 0;
-
-    // Otherwise, just move on
-    assert(!LIST_EMPTY(spa_free_pages));
-  }
   free_page = spa_free_pages.head;
   assert(free_page);
 
@@ -112,6 +96,22 @@ spa_available(){
   return spa_free_pages.count;
 }
 
+unsigned int
+spa_available_try_extend(unsigned int req){
+  // If we don't have enough pages, ask for them
+  // This also tries to make sure that we account for pgtables
+  req += (req/512) + 2; // Account for overhead?
+  if(req > spa_free_pages.count){
+
+    unsigned int extend_pages = (req - spa_free_pages.count);
+
+    // TODO we need a return check here, not sure how to get it
+    sbi_increase_freemem(extend_pages);
+    extend_physical_memory(load_pa_start + load_pa_size, extend_pages * RISCV_PAGE_SIZE);
+  }
+  return spa_free_pages.count;
+
+}
 void
 spa_init(uintptr_t base, size_t size)
 {
@@ -125,7 +125,7 @@ void
 spa_extend(uintptr_t base, size_t size)
 {
   uintptr_t cur;
-
+  int i=0;
   // both base and size must be page-aligned
   assert(IS_ALIGNED(base, RISCV_PAGE_BITS));
   assert(IS_ALIGNED(size, RISCV_PAGE_BITS));
@@ -134,6 +134,7 @@ spa_extend(uintptr_t base, size_t size)
   for(cur = base;
       cur < base + size;
       cur += RISCV_PAGE_SIZE) {
+    i++;
     spa_put(cur);
   }
 }

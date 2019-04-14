@@ -124,8 +124,8 @@ uintptr_t syscall_mmap(void *addr, size_t length, int prot, int flags,
   // Find a continuous VA space that will fit the req. size
   int req_pages = vpn(PAGE_UP(length));
 
-  // Do we have enough available phys pages?
-  if( req_pages > spa_available()){
+  // Do we have enough available phys pages (try to get more)!
+  if( req_pages > spa_available_try_extend(req_pages)){
     goto done;
   }
 
@@ -173,9 +173,9 @@ uintptr_t syscall_brk(void* addr){
 
   // Otherwise try to allocate pages
 
-  // Can we allocate enough phys pages?
+  // Can we allocate enough phys pages (try to get more)?
   req_page_count = (PAGE_UP(req_break) - current_break) / RISCV_PAGE_SIZE;
-  if( spa_available() < req_page_count){
+  if( req_page_count > spa_available_try_extend(req_page_count)){
     goto done;
   }
 
