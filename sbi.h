@@ -61,10 +61,12 @@ static inline void sbi_stop_enclave(uint64_t request)
   SBI_CALL_1(SBI_SM_STOP_ENCLAVE, request);
 }
 
+#ifdef DYN_ALLOCATION
 static inline void sbi_increase_freemem(uint64_t pages)
 {
   SBI_CALL_1(SBI_SM_STOP_ENCLAVE, STOP_INCREASE_FREEMEM | (pages << 16));
 }
+#endif /* DYN_ALLOCATION */
 
 static inline void sbi_exit_enclave(uint64_t retval)
 {

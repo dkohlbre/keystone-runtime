@@ -18,43 +18,17 @@
 
 static pg_list_t spa_free_pages;
 
-/* extend the size of DRAM */
-// TODO: currently, this function does not fail.
-// we need to handle error (make it return size of memory that was actually extended)
-void extend_physical_memory(uintptr_t pa, size_t size)
-{
-  //size_t extended = 0;
-
-  /* See if the physical address does not overlap */
-  //assert(!(pa + size > load_pa_start ||
-  //        pa < load_pa_start + load_pa_size));
-
-  // TODO: need to also check with UTM
-
-  // FIXME: we only allow extending the current EPM tail at this moment
-  assert(pa == (load_pa_start + load_pa_size));
-
-  // extend the physical memory
-  load_pa_size += size;
-
-  /* FIXME: we borrow and reuse exactly the same function
-   * that we used during boot.
-   * This is not a good idea, because the boot code
-   * can never fail (i.e., it exits the enclave if it fails).
-   * we need to have one that handles error case */
-  map_physical_memory(load_pa_start, load_pa_size);
-
-  freemem_size += size;
-
-  /* extend the SPA free memory */
-  spa_extend(__va(pa), size);
-}
 
 /* get a free page from the simple page allocator */
 uintptr_t
 spa_get(void)
 {
   uintptr_t free_page;
+
+  if (LIST_EMPTY(spa_free_pages)) {
+    printf("eyrie simple page allocator runs out of free pages %s","\n");
+    return 0;
+  }
 
   free_page = spa_free_pages.head;
   assert(free_page);
@@ -98,6 +72,8 @@ spa_available(){
 
 unsigned int
 spa_available_try_extend(unsigned int req){
+
+#ifdef DYN_ALLOCATION
   // If we don't have enough pages, ask for them
   // This also tries to make sure that we account for pgtables
   req += (req/512) + 2; // Account for overhead?
@@ -109,6 +85,9 @@ spa_available_try_extend(unsigned int req){
     sbi_increase_freemem(extend_pages);
     extend_physical_memory(load_pa_start + load_pa_size, extend_pages * RISCV_PAGE_SIZE);
   }
+
+#endif /* DYN_ALLOCATION */
+
   return spa_free_pages.count;
 
 }
@@ -118,6 +97,40 @@ spa_init(uintptr_t base, size_t size)
   LIST_INIT(spa_free_pages);
 
   spa_extend(base, size);
+}
+
+#ifdef DYN_ALLOCATION
+
+/* extend the size of DRAM */
+// TODO: currently, this function does not fail.
+// we need to handle error (make it return size of memory that was actually extended)
+void extend_physical_memory(uintptr_t pa, size_t size)
+{
+  //size_t extended = 0;
+
+  /* See if the physical address does not overlap */
+  //assert(!(pa + size > load_pa_start ||
+  //        pa < load_pa_start + load_pa_size));
+
+  // TODO: need to also check with UTM
+
+  // FIXME: we only allow extending the current EPM tail at this moment
+  assert(pa == (load_pa_start + load_pa_size));
+
+  // extend the physical memory
+  load_pa_size += size;
+
+  /* FIXME: we borrow and reuse exactly the same function
+   * that we used during boot.
+   * This is not a good idea, because the boot code
+   * can never fail (i.e., it exits the enclave if it fails).
+   * we need to have one that handles error case */
+  map_physical_memory(load_pa_start, load_pa_size);
+
+  freemem_size += size;
+
+  /* extend the SPA free memory */
+  spa_extend(__va(pa), size);
 }
 
 /* extend the free memory */
@@ -139,4 +152,6 @@ spa_extend(uintptr_t base, size_t size)
   }
 }
 
-#endif // USE_FREEMEM
+#endif /* DYN_ALLOCATION */
+
+#endif /* USE_FREEMEM */

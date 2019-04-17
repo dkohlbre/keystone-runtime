@@ -156,7 +156,6 @@ free_page(uintptr_t vpn){
 size_t
 alloc_pages(uintptr_t vpn, size_t count, int flags)
 {
-  print_strace("allocing %u of %u pgs\n", count, spa_available());
   unsigned int i;
   for (i = 0; i < count; i++) {
     if(!alloc_page(vpn + i, flags))
