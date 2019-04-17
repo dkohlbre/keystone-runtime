@@ -134,7 +134,6 @@ uintptr_t syscall_mmap(void *addr, size_t length, int prot, int flags,
   uintptr_t valid_pages;
   while((starting_vpn + req_pages) <= EYRIE_ANON_REGION_END){
     valid_pages = test_va_range(starting_vpn, req_pages);
-
     if(req_pages == valid_pages){
       // Set a successful value if we allocate
       // TODO free partial allocation on failure
@@ -178,7 +177,6 @@ uintptr_t syscall_brk(void* addr){
   if( req_page_count > spa_available_try_extend(req_page_count)){
     goto done;
   }
-
   // Allocate pages
   // TODO free pages on failure
   if( alloc_pages(vpn(current_break),

@@ -26,11 +26,11 @@ uintptr_t spa_get(void);
 void spa_put(uintptr_t page);
 unsigned int spa_available();
 unsigned int spa_available_try_extend(unsigned int req);
+void spa_extend(uintptr_t base, size_t size);
 
 #ifdef DYN_ALLOCATION
 // FIXME: see the comment above the usage of this function in freemem.c
 extern void map_physical_memory(uintptr_t dram_base, uintptr_t dram_size);
-void spa_extend(uintptr_t base, size_t size);
 void extend_physical_memory(uintptr_t pa, size_t size);
 #endif /* DYN_ALLOCATION */
 

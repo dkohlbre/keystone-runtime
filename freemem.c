@@ -81,6 +81,8 @@ spa_available_try_extend(unsigned int req){
 
     unsigned int extend_pages = (req - spa_free_pages.count);
 
+    //print_strace("Extending by %lu\r\n",extend_pages);
+
     // TODO we need a return check here, not sure how to get it
     sbi_increase_freemem(extend_pages);
     extend_physical_memory(load_pa_start + load_pa_size, extend_pages * RISCV_PAGE_SIZE);
@@ -98,6 +100,27 @@ spa_init(uintptr_t base, size_t size)
 
   spa_extend(base, size);
 }
+
+/* extend the free memory */
+void
+spa_extend(uintptr_t base, size_t size)
+{
+  uintptr_t cur;
+  int i=0;
+  // both base and size must be page-aligned
+  assert(IS_ALIGNED(base, RISCV_PAGE_BITS));
+  assert(IS_ALIGNED(size, RISCV_PAGE_BITS));
+
+  /* put all free pages in freemem (base) into spa_free_pages */
+  for(cur = base;
+      cur < base + size;
+      cur += RISCV_PAGE_SIZE) {
+    i++;
+    spa_put(cur);
+  }
+}
+
+
 
 #ifdef DYN_ALLOCATION
 
@@ -131,25 +154,6 @@ void extend_physical_memory(uintptr_t pa, size_t size)
 
   /* extend the SPA free memory */
   spa_extend(__va(pa), size);
-}
-
-/* extend the free memory */
-void
-spa_extend(uintptr_t base, size_t size)
-{
-  uintptr_t cur;
-  int i=0;
-  // both base and size must be page-aligned
-  assert(IS_ALIGNED(base, RISCV_PAGE_BITS));
-  assert(IS_ALIGNED(size, RISCV_PAGE_BITS));
-
-  /* put all free pages in freemem (base) into spa_free_pages */
-  for(cur = base;
-      cur < base + size;
-      cur += RISCV_PAGE_SIZE) {
-    i++;
-    spa_put(cur);
-  }
 }
 
 #endif /* DYN_ALLOCATION */
