@@ -75,8 +75,8 @@ spa_available_try_extend(unsigned int req){
 
 #ifdef DYN_ALLOCATION
   // If we don't have enough pages, ask for them
-  // This also tries to make sure that we account for pgtables
-  req += (req/512) + 2; // Account for overhead?
+  // This also tries to make sure that we account for 2sets of pgtables
+  req += (req/512)*2 + 2; // Account for overhead
   if(req > spa_free_pages.count){
 
     unsigned int extend_pages = (req - spa_free_pages.count);
