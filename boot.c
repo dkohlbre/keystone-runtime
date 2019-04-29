@@ -9,6 +9,7 @@
 #include "freemem.h"
 #include "mm.h"
 #include "env.h"
+#include "rt_util.h"
 
 /* defined in vm.h */
 extern uintptr_t shared_buffer;
@@ -242,7 +243,10 @@ eyrie_boot(uintptr_t dummy, // $a0 contains the return value from the SBI
   init_timer();
 
   /* Enable the FPU */
-  csr_write(sstatus, csr_read(sstatus) | 0x6000);
+  csr_write(sstatus, csr_read(sstatus) | 0x6000 | 0x2);
+
+  /* TODO comment this */
+  csr_write(sie, 0x22);
 
   /* booting all finished, droping to the user land */
   return;

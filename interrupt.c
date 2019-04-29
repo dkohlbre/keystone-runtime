@@ -7,8 +7,12 @@
 #include "timex.h"
 #include "interrupt.h"
 #include "printf.h"
+#include "rt_util.h"
 
-#define DEFAULT_CLOCK_DELAY 40000
+// 1ms (1.5GHz)
+#define DEFAULT_CLOCK_DELAY 10000
+//40000
+//
 
 void init_timer(void)
 {
@@ -17,9 +21,26 @@ void init_timer(void)
 
 void handle_timer_interrupt()
 {
+  // Turn off interrupts
+  clear_csr(sstatus, 0x2);
+
+  // Set a pending timer
+  sbi_set_timer(get_cycles64());
+
+  breakonme();
+
+  // Let the OS handle it
   sbi_stop_enclave(0);
+
+  // Turn interrupts back on
+  write_csr(sstatus, 0x2);
+
   unsigned long next_cycle = get_cycles64() + DEFAULT_CLOCK_DELAY;
+
+
   sbi_set_timer(next_cycle);
+
+
   return;
 }
 
@@ -34,7 +55,7 @@ void handle_interrupts(struct encl_ctx_t* regs)
     /* ignore other interrupts */
     case INTERRUPT_CAUSE_SOFTWARE:
     case INTERRUPT_CAUSE_EXTERNAL:
-    default:
+  default:
       sbi_stop_enclave(0);
       return;
   }

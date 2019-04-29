@@ -6,6 +6,10 @@
 #include "rt_util.h"
 #include "printf.h"
 
+void breakonme(){
+  return;
+}
+
 int rt_util_getrandom(void* vaddr, size_t buflen){
   //TODO: Warning, this may not be safe to cross pages!
   uintptr_t buf_trans = translate((uintptr_t)vaddr);
